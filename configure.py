@@ -1,14 +1,9 @@
 #!/usr/bin/python3
 import optparse as op
 import os
-import shutil
 import subprocess
 import glob
-import string
-import random
-import stat
 import re
-import socket
 import sys
 
 def parseOptions():
@@ -31,7 +26,7 @@ def replaceStrInFile(strMatch,strReplace,fileName,maxOccurs=None):
   numMatches=fileText.count(strMatch)
   
   if maxOccurs!=None:
-    fileText=fileText.replace(strMatch,strReplace,max=maxOccurs)
+    fileText=fileText.replace(strMatch,strReplace,maxOccurs)
     if numMatches>maxOccurs:
       numMatches=maxOccurs
   else:
@@ -65,7 +60,7 @@ def replaceStrInFileRe(pattern,replacement,fileName,maxOccurs=None):
   return numMatches
 def commentOutLineMatching(pattern,fileName,maxOccurs=None):
   """
-  Adds a # to the begning of any line which matches pattern
+  Adds a # to the begging of any line which matches pattern
   """
   
   file=open(fileName,mode='r')
@@ -76,7 +71,6 @@ def commentOutLineMatching(pattern,fileName,maxOccurs=None):
     maxOccurs=sys.maxsize
     
   for line in file:
-    
     if pattern.match(line) and numMatches<maxOccurs:
       fileText+="#"+line
       numMatches+=1
@@ -130,6 +124,20 @@ def main():
   #parse command line options
   (options,args)=parseOptions()
   
+  #configure gmond.conf on master
+  confFileName="/etc/ganglia/gmond.conf"
+  replaceStrInFile("mcast_join = 239.2.11.71"
+    ,"host = localhost"
+    ,confFileName,maxOccurs=1)
+  commentOutLineMatching('.*mcast_join = 239.2.11.71'
+    ,confFileName)
+  commentOutLineMatching('.*bind = 239.2.11.71'
+    ,confFileName)
+    
+  #copy over apache setting file
+  subprocess.call(["cp","/etc/ganglia-webfrontend/apache.conf"
+    ,"/etc/apache2/sites-enabled/ganglia.conf"])
+  restartApache()
   
 if __name__ == "__main__":
  main()
