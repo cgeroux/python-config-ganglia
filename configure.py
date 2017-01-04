@@ -93,32 +93,6 @@ def appendToFile(strsToAppend,fileName):
   file=open(fileName,mode='w')
   file.write(fileText)
   file.close()
-def execute(func,*args,dry=False,**kwargs):
-  if not dry:
-    return func(*args,**kwargs)
-  else:
-    commandStr=func.__name__+"("
-    firstArg=True
-    for arg in args:
-      if firstArg:
-        commandStr+=str(arg)
-        firstArg=False
-      else:
-        commandStr+=","+str(arg)
-    for key in kwargs:
-      if firstArg:
-        commandStr+=key+"="+str(kwargs[key])
-        firstArg=False
-      else:
-        commandStr+=","+key+"="+str(kwargs[key])
-    commandStr+=")"
-    print(commandStr)
-    return None
-def restartApache(dry=False):
-  """Restarts apache2
-  """
-  
-  execute(subprocess.call,["service","apache2","restart"],dry=dry)
 def main():
   
   #parse command line options
@@ -126,8 +100,16 @@ def main():
   
   #configure gmond.conf on master
   confFileName="/etc/ganglia/gmond.conf"
+  #confFileName="/home/ubuntu/gmond.conf"
   replaceStrInFile("mcast_join = 239.2.11.71"
     ,"host = localhost"
+    ,confFileName,maxOccurs=1)
+  replaceStrInFile("deaf = no"
+    ,"deaf = yes"
+    ,confFileName,maxOccurs=1)
+
+  replaceStrInFile("host_dmax = 0"
+    ,"host_dmax = 120"#if haven't checked in within 2 mins remove them
     ,confFileName,maxOccurs=1)
   commentOutLineMatching('.*mcast_join = 239.2.11.71'
     ,confFileName)
@@ -137,7 +119,11 @@ def main():
   #copy over apache setting file
   subprocess.call(["cp","/etc/ganglia-webfrontend/apache.conf"
     ,"/etc/apache2/sites-enabled/ganglia.conf"])
-  restartApache()
+  
+  #restart services
+  subprocess.call(["service","apache2","restart"])
+  subprocess.call(["service","ganglia-monitor","restart"])
+  subprocess.call(["service","gmetad","restart"])
   
 if __name__ == "__main__":
  main()
