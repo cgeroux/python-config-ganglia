@@ -104,9 +104,10 @@ def main():
   replaceStrInFile("mcast_join = 239.2.11.71"
     ,"host = localhost"
     ,confFileName,maxOccurs=1)
-  replaceStrInFile("deaf = no"
-    ,"deaf = yes"
-    ,confFileName,maxOccurs=1)
+  #not on the master
+  #replaceStrInFile("deaf = no"
+  #  ,"deaf = yes"
+  #  ,confFileName,maxOccurs=1)
 
   replaceStrInFile("host_dmax = 0"
     ,"host_dmax = 120"#if haven't checked in within 2 mins remove them
