@@ -115,7 +115,7 @@ def main():
       ,confFileName,maxOccurs=1)
 
     replaceStrInFile("host_dmax = 0"
-      ,"host_dmax = 120"#if haven't checked in within 2 mins remove them
+      ,"host_dmax = 90"#if haven't checked in within 1.5 mins remove them
       ,confFileName,maxOccurs=1)
     commentOutLineMatching('.*mcast_join = 239.2.11.71'
       ,confFileName)
@@ -145,7 +145,7 @@ def main():
       ,confFileName,maxOccurs=1)
 
     replaceStrInFile("host_dmax = 0"
-      ,"host_dmax = 120"#if haven't checked in within 2 mins remove them
+      ,"host_dmax = 90"#if haven't checked in within 1.5 mins remove them
       ,confFileName,maxOccurs=1)
       
     replaceStrInFile("/* You can specify as many udp_recv_channels as you like as well. */"
