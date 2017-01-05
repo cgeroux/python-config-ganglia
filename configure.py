@@ -11,7 +11,12 @@ def parseOptions():
   """
   
   parser=op.OptionParser(usage="Usage %prog"
-    ,version="%prog 1.0",description="")
+    ,version="%prog 1.0",description="Configures newly installed ganglia monitor.")
+  parser.add_option("--master-ip"
+    ,dest="masterIP"
+    ,help="Sets the ip of the master node. If none is given it is assumed you "
+    +"are configuring the master node [default: %default]."
+    ,default=None)
   return parser.parse_args()
 def replaceStrInFile(strMatch,strReplace,fileName,maxOccurs=None):
   """Replace all occurrences of strMatch with strReplace in file fileName
@@ -98,33 +103,57 @@ def main():
   #parse command line options
   (options,args)=parseOptions()
   
-  #configure gmond.conf on master
   confFileName="/etc/ganglia/gmond.conf"
   #confFileName="/home/ubuntu/gmond.conf"
-  replaceStrInFile("mcast_join = 239.2.11.71"
-    ,"host = localhost"
-    ,confFileName,maxOccurs=1)
-  #not on the master
-  #replaceStrInFile("deaf = no"
-  #  ,"deaf = yes"
-  #  ,confFileName,maxOccurs=1)
-
-  replaceStrInFile("host_dmax = 0"
-    ,"host_dmax = 120"#if haven't checked in within 2 mins remove them
-    ,confFileName,maxOccurs=1)
-  commentOutLineMatching('.*mcast_join = 239.2.11.71'
-    ,confFileName)
-  commentOutLineMatching('.*bind = 239.2.11.71'
-    ,confFileName)
+  
+  #configure gmond.conf on master
+  if options.masterIP==None:
     
-  #copy over apache setting file
-  subprocess.call(["cp","/etc/ganglia-webfrontend/apache.conf"
-    ,"/etc/apache2/sites-enabled/ganglia.conf"])
+    replaceStrInFile("mcast_join = 239.2.11.71"
+      ,"host = localhost"
+      ,confFileName,maxOccurs=1)
+
+    replaceStrInFile("host_dmax = 0"
+      ,"host_dmax = 120"#if haven't checked in within 2 mins remove them
+      ,confFileName,maxOccurs=1)
+    commentOutLineMatching('.*mcast_join = 239.2.11.71'
+      ,confFileName)
+    commentOutLineMatching('.*bind = 239.2.11.71'
+      ,confFileName)
+      
+    #copy over apache setting file
+    subprocess.call(["cp","/etc/ganglia-webfrontend/apache.conf"
+      ,"/etc/apache2/sites-enabled/ganglia.conf"])
+    
+    #restart services
+    subprocess.call(["service","apache2","restart"])
+    subprocess.call(["service","ganglia-monitor","restart"])
+    subprocess.call(["service","gmetad","restart"])
   
-  #restart services
-  subprocess.call(["service","apache2","restart"])
-  subprocess.call(["service","ganglia-monitor","restart"])
-  subprocess.call(["service","gmetad","restart"])
-  
+  #configure gmond.conf on slave
+  else:
+    
+    replaceStrInFile("mcast_join = 239.2.11.71"
+      ,"host = "+str(options.masterIP)
+      ,confFileName,maxOccurs=1)
+    
+    replaceStrInFile("deaf = no"
+      ,"deaf = yes"
+      ,confFileName,maxOccurs=1)
+
+    replaceStrInFile("host_dmax = 0"
+      ,"host_dmax = 120"#if haven't checked in within 2 mins remove them
+      ,confFileName,maxOccurs=1)
+      
+    replaceStrInFile("/* You can specify as many udp_recv_channels as you like as well. */"
+      ,"/* You can specify as many udp_recv_channels as you like as well. "
+      ,confFileName,maxOccurs=1)
+      
+    replaceStrInFile("/* You can specify as many tcp_accept_channels as you like to share"
+      ," You can specify as many tcp_accept_channels as you like to share"
+      ,confFileName,maxOccurs=1)
+      
+    #restart services
+    subprocess.call(["service","ganglia-monitor","restart"])
 if __name__ == "__main__":
  main()
