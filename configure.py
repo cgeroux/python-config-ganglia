@@ -126,12 +126,12 @@ def main():
     subprocess.call(["cp","/etc/ganglia-webfrontend/apache.conf"
       ,"/etc/apache2/sites-enabled/ganglia.conf"])
     
-    time.sleep(30)#sleep for 30 seconds before restarting
-    
     #restart services
     subprocess.call(["service","apache2","restart"])
     subprocess.call(["service","ganglia-monitor","restart"])
     subprocess.call(["service","gmetad","restart"])
+    time.sleep(30)#sleep for 30 seconds before restarting
+    subprocess.call(["service","ganglia-monitor","restart"])
   
   #configure gmond.conf on slave
   else:
@@ -157,6 +157,7 @@ def main():
       ,confFileName,maxOccurs=1)
       
     #restart services
+    subprocess.call(["service","ganglia-monitor","restart"])
     time.sleep(30)#sleep for 30 seconds before restarting
     subprocess.call(["service","ganglia-monitor","restart"])
 if __name__ == "__main__":
