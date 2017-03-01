@@ -18,10 +18,10 @@ def parseOptions():
     ,help="Sets the ip of the master node. If none is given it is assumed you "
     +"are configuring the master node [default: %default]."
     ,default=None)
-  parser.add_option("--retart-time"
+  parser.add_option("--restart-time"
     ,dest="restartTime"
     ,help="Time to wait before restarting service [default: %default]."
-    ,default=30)
+    ,default=30,type="float")
   return parser.parse_args()
 def replaceStrInFile(strMatch,strReplace,fileName,maxOccurs=None):
   """Replace all occurrences of strMatch with strReplace in file fileName
