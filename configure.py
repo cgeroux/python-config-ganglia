@@ -162,7 +162,7 @@ def main():
       
     #restart services
     subprocess.call(["service","ganglia-monitor","restart"])
-    time.sleep(optoins.restartTime)#sleep for 30 seconds before restarting
+    time.sleep(options.restartTime)#sleep for 30 seconds before restarting
     subprocess.call(["service","ganglia-monitor","restart"])
 if __name__ == "__main__":
  main()
